@@ -37,19 +37,8 @@ module SwitchPoint
       switch_point = conn.pool.spec.config[:switch_point]
       if switch_point
         proxy = ProxyRepository.find(switch_point[:name])
-        case switch_point[:mode]
-        when :readonly
-          if SwitchPoint.config.auto_writable?
-            proxy_to_writable(proxy, method_name, *args, &block)
-          else
-            raise ReadonlyError.new("#{switch_point[:name]} is readonly, but destructive method #{method_name} is called")
-          end
-        when :writable
-          purge_readonly_query_cache(proxy)
-          parent_method.call(*args, &block)
-        else
-          raise Error.new("Unknown mode #{switch_point[:mode]} is given with #{name}")
-        end
+        purge_readonly_query_cache(proxy)
+        parent_method.call(*args, &block)
       else
         parent_method.call(*args, &block)
       end
